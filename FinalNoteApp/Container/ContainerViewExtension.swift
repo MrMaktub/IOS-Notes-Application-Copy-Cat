@@ -8,7 +8,7 @@
 import UIKit
 
 extension ContainerViewController: NoteListDelegate, MenuDelegate {
-    
+        
     func updateNotes(notes: [Note]) {
         self.notes = notes
         self.noteCount = notes.count

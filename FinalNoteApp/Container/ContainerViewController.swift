@@ -7,11 +7,13 @@
 
 import UIKit
 
-class ContainerViewController: UIViewController, UIPopoverPresentationControllerDelegate {
+class ContainerViewController: UIViewController, UIPopoverPresentationControllerDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
 
     @IBOutlet var menuButton: UIButton!
     
     var notes: [Note] = Note.sampleData
+    
+    var filteredNotes: [Note]!
     
     var menuImage = UIImage(systemName: "circle.grid.3x3.circle")?.withTintColor(UIColor(red: 237/255, green: 198/255, blue: 67/255, alpha: 1.0), renderingMode: .alwaysOriginal)
     var galleryImage = UIImage(systemName: "square.grid.2x2")?.withTintColor(UIColor(red: 237/255, green: 198/255, blue: 67/255, alpha: 1.0), renderingMode: .alwaysOriginal)
@@ -31,10 +33,18 @@ class ContainerViewController: UIViewController, UIPopoverPresentationController
         
     var currentCollectionViewController: UICollectionViewController?
     
+    var searchBar: UISearchController!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         title = "All Notes"
+        
+        filteredNotes = notes
+        searchBar = UISearchController()
+        searchBar.searchResultsUpdater = self
+        searchBar.delegate = self
+        navigationItem.searchController = searchBar
         
         noteCell = storyboard?.instantiateViewController(identifier: "CellCollection")
         
@@ -52,7 +62,7 @@ class ContainerViewController: UIViewController, UIPopoverPresentationController
         toolbarItems = [spacer, tBarTitle, spacer, compose]
         
         print(notes)
-        noteCell.notes = notes
+        noteCell.notes = filteredNotes
         noteList.notes = noteCell.notes
 
         addChild(noteCell)
@@ -62,6 +72,16 @@ class ContainerViewController: UIViewController, UIPopoverPresentationController
         currentCollectionViewController = noteCell
         
     }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        var searchText = searchBar.searchBar.text!
+        filteredNotes = searchText.isEmpty ? notes : notes.filter { (item: Note) -> Bool in
+            let text = item.body + item.title
+            return text.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil;
+        }
+        view.reloadInputViews()
+    }
+    
     
     @objc func composeNote() {
         let vc = NoteDetailViewController(note: Note(title: "", body: "", image: UIImage(systemName: "folder")!), currentController: currentCollectionViewController!)
